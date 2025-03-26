@@ -7,22 +7,21 @@ if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 }
 
 echo "Installation du generateur de facture d'encan"
-$DIR=$PSScriptRoot
-
-$python_install_job = Start-Job { .\python-3.9.0.exe InstallAllUsers=0 PrependPath=1 Include_test=0 }
+$python_path = $PSScriptRoot + "\python-3.9.0.exe"
+$requirements_path = $PSScriptRoot + "\requirements.txt"
 
 echo "--- Installation de python 3.9 ---"
 echo "Telechargement de l'installeur python."
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe" -OutFile ".\python-3.9.0.exe"
-echo "Installing Python, please rerun the installer once completed by running .\installer.ps1"
+Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe" -OutFile $python_path
 
-Wait-Job $python_install_job
-Receive-Job $python_install_job
+echo "starting install job"
+$proc = Start-Process $python_path -NoNewWindow -PassThru
+$proc.WaitForExit()
+echo "install job done"
 
-rm .\python-3.9.0.exe -Force 2>$null
 echo "Installation des modules de dependances."
-py -m pip install -r requirements.txt
+py -m pip install -r $requirements_path
 Read-Host "Installation complete appuyez sur [Entrer] pour continuer."
 
 
