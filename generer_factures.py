@@ -7,6 +7,8 @@ from os.path import isfile, join
 from datetime import datetime
 from pathvalidate import sanitize_filename
 
+EMAIL_ENCAN_FACTURE = "missladynatalyencan@gmail.com"
+
 def generateDocxForClientSales(client, products, num_fac, result_file_path):
     document = Document()
 
@@ -58,7 +60,7 @@ def generateDocxForClientSales(client, products, num_fac, result_file_path):
     # mode paiement
     mode_p = document.add_paragraph('')
     mode_p.add_run('Mode de paiement : ').bold = True
-    mode_p.add_run('faire un virement a bestflowers777@gmail.com')
+    mode_p.add_run('faire un virement a ' + EMAIL_ENCAN_FACTURE)
 
     # password
     pass_p = document.add_paragraph('')
@@ -124,7 +126,7 @@ def generateInvoicesFor(cvs_file):
         #find the current sale product in the product list or create it
         product = Product()
         
-        article_name = sale['Article '].strip()
+        article_name = sale['Article']
         article_qty = 1;
         article_unit_price = 1;
 
@@ -134,7 +136,7 @@ def generateInvoicesFor(cvs_file):
             pass
 
         try:
-            article_unit_price = int(sale['Quantité'])
+            article_unit_price = int(sale['Prix Unitaire'])
         except:
             pass
             
