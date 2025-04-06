@@ -46,7 +46,7 @@ def writeTitle(document):
     header_font.size = Pt(22)
     
     header_run_img = h.add_run()
-    header_run_img.add_picture(LOGO_PATH, width=Pt(100))
+    header_run_img.add_picture(LOGO_PATH, width=Pt(125))
     
     header_format = h.paragraph_format
     header_format.space_before = Pt(1)
