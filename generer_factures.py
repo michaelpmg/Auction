@@ -17,7 +17,7 @@ def writeTitle(document):
     header_run_img = h.add_run()
     header_run_img.add_picture(LOGO_PATH, width=Pt(75))
     header_run = h.add_run()
-    header_run.add_text("\t\t\t\t\tFACTURE") #manual centering huu..
+    header_run.add_text("\t\t\t\tFACTURE") #manual centering huu..
     header_run.bold = True
     header_font = header_run.font
     header_font.size = Pt(24)
@@ -27,7 +27,7 @@ def formatFacInfo(info_format, info_run):
     info_format.space_after = Pt(1)
     info_run.bold = True
     info_run = info_run.font
-    info_run.size = Pt(16)
+    info_run.size = Pt(13)
     
 def writeNumFac(document, fac_template, num_fac):
     num_fac_p = document.add_paragraph('')
@@ -93,7 +93,7 @@ def generateDocxForClientSales(client, products, date_str, num_fac, result_file_
 
     sections = document.sections
     for section in sections:
-        section.top_margin = Cm(0)
+        section.top_margin = Cm(1)
         section.bottom_margin = Cm(1)
         section.left_margin = Cm(1)
         section.right_margin = Cm(1)
@@ -184,7 +184,7 @@ def generateInvoicesFor(cvs_file):
     
     for sale in sales:
         client = sale['Client']
-        if client is not "":
+        if client != "":
             products_by_client[sale['Client']] = {}
 
     for sale in sales:
@@ -231,7 +231,6 @@ def generateInvoicesFor(cvs_file):
         products_by_client[client] = product_list
 
     num_client = 0
-    print(str(products_by_client))
     for client in products_by_client:
         product_list = products_by_client[client]
         str_now = cvs_file.split('.')[0];
@@ -251,3 +250,5 @@ if __name__ == "__main__":
     
     for file in files_to_read:
         generateInvoicesFor(file)
+
+    input("Generation de factures terminer, appuyez sur Entrer pour continuer..")
