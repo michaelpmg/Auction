@@ -1,7 +1,8 @@
 import os
 import csv
 from docx import Document
-from docx.shared import Inches
+from docx.shared import Inches, Pt, Cm
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from os import listdir
 from os.path import isfile, join
 from datetime import datetime
@@ -9,34 +10,54 @@ from pathvalidate import sanitize_filename
 
 EMAIL_ENCAN_FACTURE = "missladynatalyencan@gmail.com"
 
-def generateDocxForClientSales(client, products, num_fac, result_file_path):
-    document = Document()
+def writeTitle(document):
+    # Titre "Facture"
+    h = document.add_heading("", level=1)
+    header_run = h.add_run("FACTURE")
+    header_run.bold = True
+    paragraph_format = h.paragraph_format
+    paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    header_font = header_run.font
+    header_font.size = Pt(24)
 
-    date_now = datetime.now();
-    date_str = str(date_now.year) + str(date_now.month) + str(date_now.day)
-    fac_id_template = "FAC-" + date_str + "-"
+def formatFacInfo(info_format, info_run):
+    info_format.space_before = Pt(1)
+    info_format.space_after = Pt(1)
+    info_run.bold = True
+    info_run = info_run.font
+    info_run.size = Pt(16)
     
-    # titre du projet
-    document.add_heading("FACTURE", level=1).bold = True
-    document.add_paragraph('')
-    
-    # numero facture
+def writeNumFac(document, fac_template, num_fac):
     num_fac_p = document.add_paragraph('')
-    num_fac_p.add_run('Numero de facture : ' + fac_id_template + str(num_fac)).bold = True
+    num_fac_format = num_fac_p.paragraph_format
+    num_fac_run = num_fac_p.add_run('Numero de facture : ' + fac_template + str(num_fac))
+    formatFacInfo(num_fac_format, num_fac_run)
+    num_fac_format.space_before = Pt(10)
     
-    # date
+
+def writeDate(document, date_str):
     date_p = document.add_paragraph('')
-    date_p_str = str(date_now.year) + '-{:02d}'.format(date_now.month) + '-{:02d}'.format(date_now.day)
-    date_p.add_run('date : ' + date_p_str).bold = True
+    date_format = date_p.paragraph_format
+    date_run = date_p.add_run('date : ' + date_str)
+    formatFacInfo(date_format, date_run)
 
-    # client
-    date_p = document.add_paragraph('')
-    date_p.add_run('Client : ' + client).bold = True
+def writeClient(document, client):
+    client_p = document.add_paragraph('')
+    client_format = client_p.paragraph_format
+    client_run = client_p.add_run('Client : ' + client)
+    formatFacInfo(client_format, client_run)
 
-    # details
-    document.add_heading("Details de la commande", level=1).bold = True
-    document.add_paragraph('')
+def writeDetailHeader(document):
+    detail_header_p = document.add_paragraph("")
+    detail_header_run = detail_header_p.add_run("Details de la commande")
+    detail_header_run.bold = True
+    detail_header_font = detail_header_run.font
+    detail_header_font.size = Pt(22)
+    detail_format = detail_header_p.paragraph_format
+    detail_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    detail_format.space_before = Pt(40)
 
+def writeProductList(document, products):
     fac_total = 0
     
     # list of product
@@ -46,39 +67,94 @@ def generateDocxForClientSales(client, products, num_fac, result_file_path):
         prod_price = prod.unit_price_
         prod_total = prod_qty * prod_price
         product_str = product + "(x" + str(prod_qty) + " a " + str(prod_price) + "$) = " + str(prod_total) + "$" 
+
         prod_p = document.add_paragraph('')
-        prod_p.add_run(product_str)
+        prod_run = prod_p.add_run(product_str)
+        prod_format = prod_p.paragraph_format
+        formatFacInfo(prod_format, prod_run)
+        prod_run.bold = False
+        
         fac_total = fac_total + prod_total
 
     # total
     total_p = document.add_paragraph('')
-    total_p.add_run('Total : ' + str(fac_total) + ".00 $").bold = True
+    total_run = total_p.add_run('Total : ' + str(fac_total) + ".00 $")
+    total_run.underline = True
+    total_format = total_p.paragraph_format
+    formatFacInfo(total_format, total_run)
+    total_format.space_before = Pt(10)
+    total_font = total_run.font
+    total_font.size = Pt(18)
+    
+def generateDocxForClientSales(client, products, date_str, num_fac, result_file_path):
+    document = Document()
 
-    # skip a line
-    document.add_paragraph('')
+    sections = document.sections
+    for section in sections:
+        section.top_margin = Cm(0.2)
+        section.bottom_margin = Cm(1)
+        section.left_margin = Cm(1)
+        section.right_margin = Cm(1)
+
+    fac_id_template = "FAC-" + "".join(date_str.split("-")) + "-"
+    
+    writeTitle(document)
+    writeNumFac(document, fac_id_template, num_fac)
+    writeDate(document, date_str)
+    writeClient(document, client)
+    writeDetailHeader(document)
+    writeProductList(document, products)
 
     # mode paiement
     mode_p = document.add_paragraph('')
-    mode_p.add_run('Mode de paiement : ').bold = True
-    mode_p.add_run('faire un virement a ' + EMAIL_ENCAN_FACTURE)
+    mode_p_format = mode_p.paragraph_format
+    mode_p_format.space_before = Pt(40)
+    mode_p.paragraph_format.space_after = Pt(2)
+    run = mode_p.add_run('Mode de paiement : ')
+    run.bold = True
+    font = run.font
+    font.size = Pt(16)
+    run = mode_p.add_run('faire un virement a ' + EMAIL_ENCAN_FACTURE)
+    font = run.font
+    font.size = Pt(16)
 
     # password
     pass_p = document.add_paragraph('')
-    pass_p.add_run('Mot de passe : ').bold = True
-    pass_p.add_run('12345')
+    pass_p.paragraph_format.space_before = Pt(2)
+    pass_p.paragraph_format.space_after = Pt(2)
+    run = pass_p.add_run('Mot de passe : ')
+    run.bold = True
+    font = run.font
+    font.size = Pt(16)
+
+    run = pass_p.add_run('12345')
+    font = run.font
+    font.size = Pt(16)
 
     # status
     status_p = document.add_paragraph('')
-    status_p.add_run('Statut : ').bold = True
-    status_p.add_run('Non payé')
+    status_p.paragraph_format.space_before = Pt(2)
+    run = status_p.add_run('Statut : ')
+    run.bold = True
+    font = run.font
+    font.size = Pt(16)
+    
+    run = status_p.add_run('Non payé')
+    font = run.font
+    font.size = Pt(14)
 
     # skip a line
     document.add_paragraph('')
 
     # thanks
     thank_p = document.add_paragraph('')
-    thank_p.add_run('Merci pour votre achat !').bold = True
-
+    run = thank_p.add_run('Merci pour votre achat !')
+    run.bold = True
+    font = run.font
+    font.size = Pt(20)
+    thank_format = thank_p.paragraph_format
+    thank_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
     document.save(result_file_path)
     
 def getSalesAsDictFromCSV(file_path):
@@ -156,11 +232,11 @@ def generateInvoicesFor(cvs_file):
     print(str(products_by_client))
     for client in products_by_client:
         product_list = products_by_client[client]
-        str_now = str(datetime.now().year) + '-{:02d}'.format(datetime.now().month) + '-{:02d}'.format(datetime.now().day)
-        result_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Factures_' + str_now )
+        str_now = cvs_file.split('.')[0];
+        result_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Factures_' + str_now)
         ensureDirectoryExists(result_dir)
         result_file = os.path.join(result_dir, sanitize_filename(client + "_" + str_now + ".docx"))
-        generateDocxForClientSales(client, product_list, num_client, result_file)
+        generateDocxForClientSales(client, product_list, str_now, num_client, result_file)
     
 def moveEncanFile(csv_file):
     pass
