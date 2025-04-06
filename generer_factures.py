@@ -9,14 +9,16 @@ from datetime import datetime
 from pathvalidate import sanitize_filename
 
 EMAIL_ENCAN_FACTURE = "missladynatalyencan@gmail.com"
+LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.jpg')
 
 def writeTitle(document):
     # Titre "Facture"
     h = document.add_heading("", level=1)
-    header_run = h.add_run("FACTURE")
+    header_run_img = h.add_run()
+    header_run_img.add_picture(LOGO_PATH, width=Pt(75))
+    header_run = h.add_run()
+    header_run.add_text("\t\t\t\t\tFACTURE") #manual centering huu..
     header_run.bold = True
-    paragraph_format = h.paragraph_format
-    paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
     header_font = header_run.font
     header_font.size = Pt(24)
 
@@ -91,7 +93,7 @@ def generateDocxForClientSales(client, products, date_str, num_fac, result_file_
 
     sections = document.sections
     for section in sections:
-        section.top_margin = Cm(0.2)
+        section.top_margin = Cm(0)
         section.bottom_margin = Cm(1)
         section.left_margin = Cm(1)
         section.right_margin = Cm(1)
