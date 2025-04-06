@@ -7,20 +7,50 @@ from os import listdir
 from os.path import isfile, join
 from datetime import datetime
 from pathvalidate import sanitize_filename
+from docx.oxml import OxmlElement, ns
 
 EMAIL_ENCAN_FACTURE = "missladynatalyencan@gmail.com"
 LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.jpg')
 
+def create_element(name):
+    return OxmlElement(name)
+
+def create_attribute(element, name, value):
+    element.set(ns.qn(name), value)
+
+
+def add_page_number(run):
+    fldChar1 = create_element('w:fldChar')
+    create_attribute(fldChar1, 'w:fldCharType', 'begin')
+
+    instrText = create_element('w:instrText')
+    create_attribute(instrText, 'xml:space', 'preserve')
+    instrText.text = "PAGE"
+    fldChar2 = create_element('w:fldChar')
+    create_attribute(fldChar2, 'w:fldCharType', 'end')
+
+    run._r.append(fldChar1)
+    run._r.append(instrText)
+    run._r.append(fldChar2)
+
+    run.font.size = Pt(14)
+    
 def writeTitle(document):
     # Titre "Facture"
     h = document.add_heading("", level=1)
-    header_run_img = h.add_run()
-    header_run_img.add_picture(LOGO_PATH, width=Pt(75))
+
     header_run = h.add_run()
-    header_run.add_text("\t\t\t\tFACTURE") #manual centering huu..
+    header_run.add_text("FACTURE\t\t\t\t\t") #manual centering huu..
     header_run.bold = True
     header_font = header_run.font
-    header_font.size = Pt(24)
+    header_font.size = Pt(22)
+    
+    header_run_img = h.add_run()
+    header_run_img.add_picture(LOGO_PATH, width=Pt(100))
+    
+    header_format = h.paragraph_format
+    header_format.space_before = Pt(1)
+    header_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
 def formatFacInfo(info_format, info_run):
     info_format.space_before = Pt(1)
@@ -157,6 +187,7 @@ def generateDocxForClientSales(client, products, date_str, num_fac, result_file_
     thank_format = thank_p.paragraph_format
     thank_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
     
+    add_page_number(document.sections[0].footer.paragraphs[0].add_run("PAGE "))
     document.save(result_file_path)
     
 def getSalesAsDictFromCSV(file_path):
