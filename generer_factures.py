@@ -237,6 +237,7 @@ def generateInvoicesFor(cvs_file):
         ensureDirectoryExists(result_dir)
         result_file = os.path.join(result_dir, sanitize_filename(client + "_" + str_now + ".docx"))
         generateDocxForClientSales(client, product_list, str_now, num_client, result_file)
+        num_client = num_client + 1
     
 def moveEncanFile(csv_file):
     pass
