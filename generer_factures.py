@@ -1,7 +1,9 @@
 import os
 import csv
 from docx import Document
-from docx.shared import Inches, Pt, Cm
+from docx.shared import Inches, Pt, Cm, RGBColor
+from docx.dml.color import ColorFormat
+from docx.text.run import Font, Run
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from os import listdir
 from os.path import isfile, join
@@ -10,7 +12,7 @@ from pathvalidate import sanitize_filename
 from docx.oxml import OxmlElement, ns
 
 EMAIL_ENCAN_FACTURE = "missladynatalyencan@gmail.com"
-LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.jpg')
+LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logo.png')
 
 def create_element(name):
     return OxmlElement(name)
@@ -40,10 +42,11 @@ def writeTitle(document):
     h = document.add_heading("", level=1)
 
     header_run = h.add_run()
-    header_run.add_text("FACTURE\t\t\t\t\t") #manual centering huu..
+    header_run.add_text("FACTURE\t\t\t\t") #manual centering huu..
     header_run.bold = True
     header_font = header_run.font
     header_font.size = Pt(22)
+    header_font.color.rgb = RGBColor(255, 151, 203)
     
     header_run_img = h.add_run()
     header_run_img.add_picture(LOGO_PATH, width=Pt(125))
@@ -57,20 +60,20 @@ def formatFacInfo(info_format, info_run):
     info_format.space_after = Pt(1)
     info_run.bold = True
     info_run = info_run.font
-    info_run.size = Pt(13)
+    info_run.size = Pt(16)
     
 def writeNumFac(document, fac_template, num_fac):
     num_fac_p = document.add_paragraph('')
     num_fac_format = num_fac_p.paragraph_format
     num_fac_run = num_fac_p.add_run('Numero de facture : ' + fac_template + str(num_fac))
     formatFacInfo(num_fac_format, num_fac_run)
-    num_fac_format.space_before = Pt(10)
+    num_fac_format.space_before = Pt(8)
     
 
 def writeDate(document, date_str):
     date_p = document.add_paragraph('')
     date_format = date_p.paragraph_format
-    date_run = date_p.add_run('date : ' + date_str)
+    date_run = date_p.add_run('Date : ' + date_str)
     formatFacInfo(date_format, date_run)
 
 def writeClient(document, client):
@@ -84,10 +87,10 @@ def writeDetailHeader(document):
     detail_header_run = detail_header_p.add_run("Details de la commande")
     detail_header_run.bold = True
     detail_header_font = detail_header_run.font
-    detail_header_font.size = Pt(22)
+    detail_header_font.size = Pt(16)
     detail_format = detail_header_p.paragraph_format
     detail_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    detail_format.space_before = Pt(40)
+    detail_format.space_before = Pt(30)
 
 def writeProductList(document, products):
     fac_total = 0
@@ -166,15 +169,10 @@ def generateDocxForClientSales(client, products, date_str, num_fac, result_file_
     # status
     status_p = document.add_paragraph('')
     status_p.paragraph_format.space_before = Pt(2)
-    run = status_p.add_run('Statut : ')
+    run = status_p.add_run('Effectuer le paiement immédiatement sur reception de la facture.')
     run.bold = True
     font = run.font
     font.size = Pt(16)
-    
-    run = status_p.add_run('Non payé')
-    font = run.font
-    font.size = Pt(14)
-
     # skip a line
     document.add_paragraph('')
 
